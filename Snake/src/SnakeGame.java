@@ -18,6 +18,7 @@ public class SnakeGame extends JPanel implements ActionListener {
     private final int TOTAL_TILES = (BOARD_WIDTH * BOARD_HEIGHT) / (TILE_SIZE * TILE_SIZE);
 
     private List<Point> snake;
+    private List<Point> enemySnake;
     private List<Fruit> fruits;
     private List<Obstacle> obstacles;
     private char direction;
@@ -25,6 +26,9 @@ public class SnakeGame extends JPanel implements ActionListener {
     private Timer timer;
     private BufferedImage appleImage;
     private BufferedImage bananaImage;
+    private int score;
+    private int initialDelay = 200; // Initial delay for slow mode
+    private int delayDecrease = 5;  // Amount to decrease delay per point
 
     public SnakeGame() {
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
@@ -73,14 +77,18 @@ public class SnakeGame extends JPanel implements ActionListener {
 
     private void initGame() {
         snake = new ArrayList<>();
+        enemySnake = new ArrayList<>();
         fruits = new ArrayList<>();
         obstacles = new ArrayList<>();
         snake.add(new Point(BOARD_WIDTH / 2, BOARD_HEIGHT / 2));
+        enemySnake.add(new Point(BOARD_WIDTH / 4, BOARD_HEIGHT / 4)); // Initialize enemy snake
         direction = 'R';
         placeFruits();
+        placeObstacles();
         running = true;
-        timer = new Timer(100, this);
+        timer = new Timer(initialDelay, this);
         timer.start();
+        score = 0;
     }
 
     private void placeFruits() {
@@ -131,6 +139,9 @@ public class SnakeGame extends JPanel implements ActionListener {
             if (head.equals(fruits.get(i).position)) {
                 fruits.remove(i);
                 placeFruits();
+                score++;
+                int newDelay = Math.max(50, initialDelay - score * delayDecrease); // Speed up the game
+                timer.setDelay(newDelay);
                 return;
             }
         }
@@ -160,6 +171,100 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    private void moveEnemy() {
+        if (enemySnake.isEmpty()) return;
+
+        Point head = new Point(enemySnake.get(0));
+        Point nearestFruit = findNearestFruit(head);
+
+        if (nearestFruit == null) {
+            return;
+        }
+
+        // Determine the direction based on the nearest fruit
+        int dx = nearestFruit.x - head.x;
+        int dy = nearestFruit.y - head.y;
+
+        // Priority order of directions
+        char[] directions = new char[4];
+        if (Math.abs(dx) > Math.abs(dy)) {
+            directions[0] = dx > 0 ? 'R' : 'L';
+            directions[1] = dy > 0 ? 'D' : 'U';
+            directions[2] = dy > 0 ? 'U' : 'D';
+            directions[3] = dx > 0 ? 'L' : 'R';
+        } else {
+            directions[0] = dy > 0 ? 'D' : 'U';
+            directions[1] = dx > 0 ? 'R' : 'L';
+            directions[2] = dx > 0 ? 'L' : 'R';
+            directions[3] = dy > 0 ? 'U' : 'D';
+        }
+
+        // Find a safe direction
+        for (char dir : directions) {
+            Point newHead = new Point(head);
+            switch (dir) {
+                case 'L':
+                    newHead.x -= TILE_SIZE;
+                    break;
+                case 'R':
+                    newHead.x += TILE_SIZE;
+                    break;
+                case 'U':
+                    newHead.y -= TILE_SIZE;
+                    break;
+                case 'D':
+                    newHead.y += TILE_SIZE;
+                    break;
+            }
+            if (isSafe(newHead)) {
+                head = newHead;
+                break;
+            }
+        }
+
+        enemySnake.add(0, head);
+        for (int i = 0; i < fruits.size(); i++) {
+            if (head.equals(fruits.get(i).position)) {
+                fruits.remove(i);
+                placeFruits();
+                return;
+            }
+        }
+        enemySnake.remove(enemySnake.size() - 1);
+    }
+
+    private Point findNearestFruit(Point head) {
+        Point nearest = null;
+        double minDist = Double.MAX_VALUE;
+        for (Fruit fruit : fruits) {
+            double dist = head.distance(fruit.position);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = fruit.position;
+            }
+        }
+        return nearest;
+    }
+
+    private boolean isSafe(Point p) {
+        for (Obstacle obstacle : obstacles) {
+            if (p.equals(obstacle.position)) {
+                return false;
+            }
+        }
+        for (Point part : snake) {
+            if (p.equals(part)) {
+                return false;
+            }
+        }
+        for (Point part : enemySnake) {
+            if (p.equals(part)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void checkCollision() {
         Point head = snake.get(0);
         if (head.x < 0 || head.x >= BOARD_WIDTH || head.y < 0 || head.y >= BOARD_HEIGHT) {
@@ -173,6 +278,37 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
         for (Obstacle obstacle : obstacles) {
             if (head.equals(obstacle.position)) {
+                running = false;
+                break;
+            }
+        }
+        for (Point part : enemySnake) {
+            if (head.equals(part)) {
+                running = false;
+                break;
+            }
+        }
+
+        // Check for collision of enemy snake with itself
+        Point enemyHead = enemySnake.get(0);
+        for (int i = 1; i < enemySnake.size(); i++) {
+            if (enemyHead.equals(enemySnake.get(i))) {
+                running = false;
+                break;
+            }
+        }
+
+        // Check for collision of enemy snake with obstacles
+        for (Obstacle obstacle : obstacles) {
+            if (enemyHead.equals(obstacle.position)) {
+                running = false;
+                break;
+            }
+        }
+
+        // Check for collision of enemy snake with main snake
+        for (Point part : snake) {
+            if (enemyHead.equals(part)) {
                 running = false;
                 break;
             }
@@ -206,6 +342,12 @@ public class SnakeGame extends JPanel implements ActionListener {
                 g.setColor(Color.GREEN);
                 g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
             }
+            g.setColor(Color.BLUE);
+            for (Point point : enemySnake) {
+                g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
+            }
+            g.setColor(Color.WHITE);
+            g.drawString("Score: " + score, 10, 10);
         } else {
             gameOver(g);
         }
@@ -224,6 +366,7 @@ public class SnakeGame extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (running) {
             move();
+            moveEnemy();
             moveObstacles();
             checkCollision();
         }
