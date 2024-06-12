@@ -1,14 +1,14 @@
 import javax.swing.*;
 
-public class Maina {
+public class Main {
     public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        SnakeGame game = new SnakeGame();
-        frame.add(game);
-        frame.pack();
-        frame.setTitle("Snake Game");
+        JFrame frame = new JFrame("Snake Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
         frame.setLocationRelativeTo(null);
+
+        MainMenu menu = new MainMenu(frame);
+        frame.setContentPane(menu);
         frame.setVisible(true);
     }
 }
