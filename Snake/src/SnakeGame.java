@@ -27,13 +27,17 @@ public class SnakeGame extends JPanel implements ActionListener {
     private BufferedImage appleImage;
     private BufferedImage bananaImage;
     private int score;
-    private int initialDelay = 200; // Initial delay for slow mode
-    private int delayDecrease = 5;  // Amount to decrease delay per point
+    private int initialDelay = 200;
+    private int delayDecrease = 5;
+    private JButton restartButton;
+    private boolean playWithComputer;
 
-    public SnakeGame() {
+    public SnakeGame(boolean playWithComputer) {
+        this.playWithComputer = playWithComputer;
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
         setBackground(Color.BLACK);
         setFocusable(true);
+        setLayout(null);
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -52,24 +56,30 @@ public class SnakeGame extends JPanel implements ActionListener {
                 }
             }
         });
-        initGame();
         loadImages();
+        initRestartButton();
+        initGame();
+    }
+
+    private void initRestartButton() {
+        restartButton = new JButton("Restart");
+        restartButton.setBounds((BOARD_WIDTH - 100) / 2, (BOARD_HEIGHT - 50) / 2 + 60, 100, 50);
+        restartButton.setFocusable(false);
+        restartButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                initGame();
+                restartButton.setVisible(false);
+            }
+        });
+        restartButton.setVisible(false);
+        add(restartButton);
     }
 
     private void loadImages() {
         try {
-            appleImage = ImageIO.read(getClass().getResourceAsStream("resources/apple-removebg-preview.png"));
-            bananaImage = ImageIO.read(getClass().getResourceAsStream("resources/banana-removebg-preview.png"));
-            if (appleImage == null) {
-                System.out.println("appleImage not loaded");
-            } else {
-                System.out.println("appleImage loaded successfully");
-            }
-            if (bananaImage == null) {
-                System.out.println("bananaImage not loaded");
-            } else {
-                System.out.println("bananaImage loaded successfully");
-            }
+            appleImage = ImageIO.read(getClass().getResourceAsStream("/resources/apple-removebg-preview.png"));
+            bananaImage = ImageIO.read(getClass().getResourceAsStream("/resources/banana-removebg-preview.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -81,14 +91,19 @@ public class SnakeGame extends JPanel implements ActionListener {
         fruits = new ArrayList<>();
         obstacles = new ArrayList<>();
         snake.add(new Point(BOARD_WIDTH / 2, BOARD_HEIGHT / 2));
-        enemySnake.add(new Point(BOARD_WIDTH / 4, BOARD_HEIGHT / 4)); // Initialize enemy snake
+        if (playWithComputer) {
+            enemySnake.add(new Point(BOARD_WIDTH / 4, BOARD_HEIGHT / 4));
+        }
         direction = 'R';
         placeFruits();
         placeObstacles();
         running = true;
+        score = 0;
+        if (timer != null) {
+            timer.stop();
+        }
         timer = new Timer(initialDelay, this);
         timer.start();
-        score = 0;
     }
 
     private void placeFruits() {
@@ -140,7 +155,7 @@ public class SnakeGame extends JPanel implements ActionListener {
                 fruits.remove(i);
                 placeFruits();
                 score++;
-                int newDelay = Math.max(50, initialDelay - score * delayDecrease); // Speed up the game
+                int newDelay = Math.max(50, initialDelay - score * delayDecrease);
                 timer.setDelay(newDelay);
                 return;
             }
@@ -181,11 +196,9 @@ public class SnakeGame extends JPanel implements ActionListener {
             return;
         }
 
-        // Determine the direction based on the nearest fruit
         int dx = nearestFruit.x - head.x;
         int dy = nearestFruit.y - head.y;
 
-        // Priority order of directions
         char[] directions = new char[4];
         if (Math.abs(dx) > Math.abs(dy)) {
             directions[0] = dx > 0 ? 'R' : 'L';
@@ -199,7 +212,6 @@ public class SnakeGame extends JPanel implements ActionListener {
             directions[3] = dy > 0 ? 'U' : 'D';
         }
 
-        // Find a safe direction
         for (char dir : directions) {
             Point newHead = new Point(head);
             switch (dir) {
@@ -289,7 +301,6 @@ public class SnakeGame extends JPanel implements ActionListener {
             }
         }
 
-        // Check for collision of enemy snake with itself
         Point enemyHead = enemySnake.get(0);
         for (int i = 1; i < enemySnake.size(); i++) {
             if (enemyHead.equals(enemySnake.get(i))) {
@@ -298,7 +309,6 @@ public class SnakeGame extends JPanel implements ActionListener {
             }
         }
 
-        // Check for collision of enemy snake with obstacles
         for (Obstacle obstacle : obstacles) {
             if (enemyHead.equals(obstacle.position)) {
                 running = false;
@@ -306,7 +316,6 @@ public class SnakeGame extends JPanel implements ActionListener {
             }
         }
 
-        // Check for collision of enemy snake with main snake
         for (Point part : snake) {
             if (enemyHead.equals(part)) {
                 running = false;
@@ -321,17 +330,9 @@ public class SnakeGame extends JPanel implements ActionListener {
         if (running) {
             for (Fruit fruit : fruits) {
                 if (fruit.isApple) {
-                    if (appleImage != null) {
-                        g.drawImage(appleImage, fruit.position.x, fruit.position.y, TILE_SIZE, TILE_SIZE, this);
-                    } else {
-                        System.out.println("appleImage is null");
-                    }
+                    g.drawImage(appleImage, fruit.position.x, fruit.position.y, TILE_SIZE, TILE_SIZE, this);
                 } else {
-                    if (bananaImage != null) {
-                        g.drawImage(bananaImage, fruit.position.x, fruit.position.y, TILE_SIZE, TILE_SIZE, this);
-                    } else {
-                        System.out.println("bananaImage is null");
-                    }
+                    g.drawImage(bananaImage, fruit.position.x, fruit.position.y, TILE_SIZE, TILE_SIZE, this);
                 }
             }
             g.setColor(Color.RED);
@@ -342,14 +343,17 @@ public class SnakeGame extends JPanel implements ActionListener {
                 g.setColor(Color.GREEN);
                 g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
             }
-            g.setColor(Color.BLUE);
-            for (Point point : enemySnake) {
-                g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
+            if (playWithComputer) {
+                g.setColor(Color.BLUE);
+                for (Point point : enemySnake) {
+                    g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
+                }
             }
             g.setColor(Color.WHITE);
             g.drawString("Score: " + score, 10, 10);
         } else {
             gameOver(g);
+            restartButton.setVisible(true);
         }
     }
 
@@ -366,11 +370,17 @@ public class SnakeGame extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (running) {
             move();
-            moveEnemy();
+            if (playWithComputer) {
+                moveEnemy();
+            }
             moveObstacles();
             checkCollision();
         }
         repaint();
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     private static class Fruit {
@@ -394,13 +404,12 @@ public class SnakeGame extends JPanel implements ActionListener {
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Snake Game");
-        SnakeGame game = new SnakeGame();
+        JFrame frame = new JFrame("Snake Game - Play with Computer");
+        SnakeGame game = new SnakeGame(true);
         frame.add(game);
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        game.placeObstacles();
     }
 }
