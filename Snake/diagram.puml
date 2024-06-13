@@ -1,0 +1,90 @@
+@startuml
+
+class SnakeGame {
+  - TILE_SIZE: int
+  - BOARD_WIDTH: int
+  - BOARD_HEIGHT: int
+  - TOTAL_TILES: int
+  - snake: List<Point>
+  - enemySnake: List<Point>
+  - fruits: List<Fruit>
+  - obstacles: List<Obstacle>
+  - direction: char
+  - running: boolean
+  - timer: Timer
+  - appleImage: BufferedImage
+  - bananaImage: BufferedImage
+  - score: int
+  - initialDelay: int
+  - delayDecrease: int
+  - restartButton: JButton
+  - playWithComputer: boolean
+  + SnakeGame(playWithComputer: boolean)
+  + initRestartButton(): void
+  + loadImages(): void
+  + initGame(): void
+  + placeFruits(): void
+  + placeObstacles(): void
+  + randomDirection(): char
+  + move(): void
+  + moveObstacles(): void
+  + moveEnemy(): void
+  + findNearestFruit(head: Point): Point
+  + isSafe(p: Point): boolean
+  + checkCollision(): void
+  + paintComponent(g: Graphics): void
+  + gameOver(g: Graphics): void
+  + actionPerformed(e: ActionEvent): void
+  + isRunning(): boolean
+}
+
+class Fruit {
+  - position: Point
+  - isApple: boolean
+  + Fruit(position: Point, isApple: boolean)
+}
+
+class Obstacle {
+  - position: Point
+  - direction: char
+  + Obstacle(position: Point, direction: char)
+}
+
+class Point {
+  - x: int
+  - y: int
+  + Point(x: int, y: int)
+  + distance(p: Point): double
+}
+
+class Timer {
+  + Timer(delay: int, listener: ActionListener)
+  + setDelay(delay: int): void
+  + stop(): void
+  + start(): void
+}
+
+class BufferedImage {
+}
+
+class Graphics {
+}
+
+class JButton {
+  + JButton(text: String)
+  + setBounds(x: int, y: int, width: int, height: int): void
+  + setFocusable(focusable: boolean): void
+  + addActionListener(listener: ActionListener): void
+  + setVisible(visible: boolean): void
+}
+
+SnakeGame "1" -- "*" Fruit
+SnakeGame "1" -- "*" Obstacle
+SnakeGame "1" -- "*" Point : snake
+SnakeGame "1" -- "*" Point : enemySnake
+SnakeGame "1" -- "*" Timer
+SnakeGame "1" -- "*" BufferedImage
+SnakeGame "1" -- "*" Graphics
+SnakeGame "1" -- "*" JButton
+
+@enduml
