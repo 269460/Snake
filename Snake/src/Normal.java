@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -19,8 +22,15 @@ public class Normal extends JPanel implements ActionListener {
     private boolean running;
     private Timer timer;
     private JButton restartButton;
+    private JButton menuButton;
+    private BufferedImage appleImage;
+    private BufferedImage bananaImage;
+    private boolean isApple;
+    private JFrame parentFrame;
+    private int score; // Dodano zmienną przechowującą wynik
 
-    public Normal() {
+    public Normal(JFrame parentFrame) {
+        this.parentFrame = parentFrame;
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
         setBackground(Color.BLACK);
         setFocusable(true);
@@ -43,23 +53,46 @@ public class Normal extends JPanel implements ActionListener {
                 }
             }
         });
+        loadImages();
         initRestartButton();
+        initMenuButton();
         initGame();
+    }
+
+    private void loadImages() {
+        try {
+            appleImage = ImageIO.read(getClass().getResourceAsStream("/resources/apple-removebg-preview.png"));
+            bananaImage = ImageIO.read(getClass().getResourceAsStream("/resources/banana-removebg-preview.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initRestartButton() {
         restartButton = new JButton("Restart");
-        restartButton.setBounds((BOARD_WIDTH - 100) / 2, (BOARD_HEIGHT - 50) / 2 + 60, 100, 50);
         restartButton.setFocusable(false);
         restartButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 initGame();
                 restartButton.setVisible(false);
+                menuButton.setVisible(false);
             }
         });
         restartButton.setVisible(false);
-        add(restartButton);
+    }
+
+    private void initMenuButton() {
+        menuButton = new JButton("Menu");
+        menuButton.setFocusable(false);
+        menuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                parentFrame.setContentPane(new MainMenu(parentFrame));
+                parentFrame.revalidate();
+            }
+        });
+        menuButton.setVisible(false);
     }
 
     private void initGame() {
@@ -68,6 +101,7 @@ public class Normal extends JPanel implements ActionListener {
         direction = 'R';
         placeFood();
         running = true;
+        score = 0; // Resetowanie wyniku
         if (timer != null) {
             timer.stop();
         }
@@ -80,6 +114,7 @@ public class Normal extends JPanel implements ActionListener {
         int x = random.nextInt(BOARD_WIDTH / TILE_SIZE) * TILE_SIZE;
         int y = random.nextInt(BOARD_HEIGHT / TILE_SIZE) * TILE_SIZE;
         food = new Point(x, y);
+        isApple = random.nextBoolean(); // Losowo wybiera, czy ma być jabłko, czy banan
     }
 
     private void move() {
@@ -101,6 +136,7 @@ public class Normal extends JPanel implements ActionListener {
         if (head.equals(food)) {
             snake.add(0, head);
             placeFood();
+            score++; // Zwiększanie wyniku
         } else {
             snake.add(0, head);
             snake.remove(snake.size() - 1);
@@ -124,15 +160,21 @@ public class Normal extends JPanel implements ActionListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (running) {
-            g.setColor(Color.RED);
-            g.fillRect(food.x, food.y, TILE_SIZE, TILE_SIZE);
+            if (isApple) {
+                g.drawImage(appleImage, food.x, food.y, TILE_SIZE, TILE_SIZE, this);
+            } else {
+                g.drawImage(bananaImage, food.x, food.y, TILE_SIZE, TILE_SIZE, this);
+            }
             for (Point point : snake) {
                 g.setColor(Color.GREEN);
                 g.fillRect(point.x, point.y, TILE_SIZE, TILE_SIZE);
             }
+            g.setColor(Color.WHITE);
+            g.drawString("Score: " + score, 10, 10); // Wyświetlanie wyniku
         } else {
             gameOver(g);
             restartButton.setVisible(true);
+            menuButton.setVisible(true);
         }
     }
 
@@ -143,6 +185,22 @@ public class Normal extends JPanel implements ActionListener {
         g.setColor(Color.RED);
         g.setFont(font);
         g.drawString(msg, (BOARD_WIDTH - metrics.stringWidth(msg)) / 2, BOARD_HEIGHT / 2);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.setBounds((BOARD_WIDTH - 200) / 2, (BOARD_HEIGHT - 50) / 2 + 60, 200, 50);
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(restartButton);
+        buttonPanel.add(menuButton);
+        this.add(buttonPanel);
+
+        try {
+            int highscore = Highscore.readSinglePlayerHighscore();
+            if (score > highscore) {
+                Highscore.writeSinglePlayerHighscore(score);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -160,7 +218,7 @@ public class Normal extends JPanel implements ActionListener {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Snake Game - Single Player");
-        Normal game = new Normal();
+        Normal game = new Normal(frame);
         frame.add(game);
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
