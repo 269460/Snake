@@ -7,6 +7,7 @@ class SnakeGame {
   - TOTAL_TILES: int
   - snake: List<Point>
   - enemySnake: List<Point>
+  - secondEnemySnake: List<Point>
   - fruits: List<Fruit>
   - obstacles: List<Obstacle>
   - direction: char
@@ -18,9 +19,18 @@ class SnakeGame {
   - initialDelay: int
   - delayDecrease: int
   - restartButton: JButton
+  - menuButton: JButton
   - playWithComputer: boolean
-  + SnakeGame(playWithComputer: boolean)
+  - playerThread: Thread
+  - enemyThread: Thread
+  - secondEnemyThread: Thread
+  - playerSnakeMover: SnakeMover
+  - enemySnakeMover: SnakeMover
+  - secondEnemySnakeMover: SnakeMover
+  - parentFrame: JFrame
+  + SnakeGame(playWithComputer: boolean, parentFrame: JFrame)
   + initRestartButton(): void
+  + initMenuButton(): void
   + loadImages(): void
   + initGame(): void
   + placeFruits(): void
@@ -29,13 +39,71 @@ class SnakeGame {
   + move(): void
   + moveObstacles(): void
   + moveEnemy(): void
+  + moveSecondEnemy(): void
+  + moveSingleEnemy(enemy: List<Point>, target: Point): void
   + findNearestFruit(head: Point): Point
+  + isFruitNearby(head: Point, distance: int): Point
+  + moveTowardsPlayer(enemy: List<Point>): void
   + isSafe(p: Point): boolean
   + checkCollision(): void
   + paintComponent(g: Graphics): void
   + gameOver(g: Graphics): void
   + actionPerformed(e: ActionEvent): void
   + isRunning(): boolean
+  + stopThreads(): void
+}
+
+class Normal {
+  - TILE_SIZE: int
+  - BOARD_WIDTH: int
+  - BOARD_HEIGHT: int
+  - snake: List<Point>
+  - food: Point
+  - direction: char
+  - running: boolean
+  - timer: Timer
+  - restartButton: JButton
+  - menuButton: JButton
+  - appleImage: BufferedImage
+  - bananaImage: BufferedImage
+  - isApple: boolean
+  - parentFrame: JFrame
+  - score: int
+  + Normal(parentFrame: JFrame)
+  + loadImages(): void
+  + initRestartButton(): void
+  + initMenuButton(): void
+  + initGame(): void
+  + placeFood(): void
+  + move(): void
+  + checkCollision(): void
+  + paintComponent(g: Graphics): void
+  + gameOver(g: Graphics): void
+  + actionPerformed(e: ActionEvent): void
+  + isRunning(): boolean
+}
+
+class MainMenu {
+  enum Mode { SINGLE_PLAYER, PLAY_WITH_COMPUTER, NONE }
+  - parentFrame: JFrame
+  - selectedMode: Mode
+  + MainMenu(parentFrame: JFrame)
+  + startGame(): void
+  + showHighscore(): void
+  + getSelectedMode(): Mode
+}
+
+class Highscore {
+  + readHighscore(filename: String): int
+  + writeHighscore(filename: String, score: int): void
+  + readSinglePlayerHighscore(): int
+  + writeSinglePlayerHighscore(score: int): void
+  + readPlayWithComputerHighscore(): int
+  + writePlayWithComputerHighscore(score: int): void
+}
+
+class Main {
+  + main(args: String[]): void
 }
 
 class Fruit {
@@ -78,13 +146,53 @@ class JButton {
   + setVisible(visible: boolean): void
 }
 
+class JFrame {
+  + setContentPane(contentPane: Container): void
+  + revalidate(): void
+  + setDefaultCloseOperation(operation: int): void
+  + setSize(width: int, height: int): void
+  + setLocationRelativeTo(c: Component): void
+  + setVisible(b: boolean): void
+}
+
+class Thread {
+  + start(): void
+  + run(): void
+}
+
+interface ActionListener {
+  + actionPerformed(e: ActionEvent): void
+}
+
+MainMenu "1" -- "*" JButton
+MainMenu "1" -- "1" JFrame
+
+Highscore "1" -- "*" String
+Highscore "1" -- "*" int
+
 SnakeGame "1" -- "*" Fruit
 SnakeGame "1" -- "*" Obstacle
 SnakeGame "1" -- "*" Point : snake
 SnakeGame "1" -- "*" Point : enemySnake
+SnakeGame "1" -- "*" Point : secondEnemySnake
 SnakeGame "1" -- "*" Timer
 SnakeGame "1" -- "*" BufferedImage
 SnakeGame "1" -- "*" Graphics
 SnakeGame "1" -- "*" JButton
+SnakeGame "1" -- "1" JFrame
+SnakeGame "1" -- "1" Thread : playerThread
+SnakeGame "1" -- "1" Thread : enemyThread
+SnakeGame "1" -- "1" Thread : secondEnemyThread
+
+Normal "1" -- "*" Point : snake
+Normal "1" -- "1" Point : food
+Normal "1" -- "1" Timer
+Normal "1" -- "*" BufferedImage
+Normal "1" -- "*" Graphics
+Normal "1" -- "*" JButton
+Normal "1" -- "1" JFrame
+
+Main "1" -- "1" JFrame
+Main "1" -- "1" MainMenu
 
 @enduml
