@@ -29,6 +29,7 @@ public class Normal extends JPanel implements ActionListener {
     private JFrame parentFrame;
     private int score; // Dodano zmienną przechowującą wynik
 
+    // Konstruktor klasy Normal
     public Normal(JFrame parentFrame) {
         this.parentFrame = parentFrame;
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
@@ -59,6 +60,7 @@ public class Normal extends JPanel implements ActionListener {
         initGame();
     }
 
+    // Metoda ładowania obrazków owoców
     private void loadImages() {
         try {
             appleImage = ImageIO.read(getClass().getResourceAsStream("/resources/apple-removebg-preview.png"));
@@ -68,6 +70,7 @@ public class Normal extends JPanel implements ActionListener {
         }
     }
 
+    // Inicjalizacja przycisku restartu
     private void initRestartButton() {
         restartButton = new JButton("Restart");
         restartButton.setFocusable(false);
@@ -82,6 +85,7 @@ public class Normal extends JPanel implements ActionListener {
         restartButton.setVisible(false);
     }
 
+    // Inicjalizacja przycisku menu
     private void initMenuButton() {
         menuButton = new JButton("Menu");
         menuButton.setFocusable(false);
@@ -95,6 +99,7 @@ public class Normal extends JPanel implements ActionListener {
         menuButton.setVisible(false);
     }
 
+    // Inicjalizacja gry
     private void initGame() {
         snake = new ArrayList<>();
         snake.add(new Point(BOARD_WIDTH / 2, BOARD_HEIGHT / 2));
@@ -109,6 +114,7 @@ public class Normal extends JPanel implements ActionListener {
         timer.start();
     }
 
+    // Umieszczanie jedzenia na planszy
     private void placeFood() {
         Random random = new Random();
         int x = random.nextInt(BOARD_WIDTH / TILE_SIZE) * TILE_SIZE;
@@ -117,6 +123,7 @@ public class Normal extends JPanel implements ActionListener {
         isApple = random.nextBoolean(); // Losowo wybiera, czy ma być jabłko, czy banan
     }
 
+    // Ruch węża
     private void move() {
         Point head = new Point(snake.get(0));
         switch (direction) {
@@ -143,6 +150,7 @@ public class Normal extends JPanel implements ActionListener {
         }
     }
 
+    // Sprawdzanie kolizji
     private void checkCollision() {
         Point head = snake.get(0);
         if (head.x < 0 || head.x >= BOARD_WIDTH || head.y < 0 || head.y >= BOARD_HEIGHT) {
@@ -156,6 +164,7 @@ public class Normal extends JPanel implements ActionListener {
         }
     }
 
+    // Rysowanie komponentów gry
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -178,6 +187,7 @@ public class Normal extends JPanel implements ActionListener {
         }
     }
 
+    // Wyświetlanie komunikatu końca gry
     private void gameOver(Graphics g) {
         String msg = "Game Over";
         Font font = new Font("Helvetica", Font.BOLD, 50);
@@ -203,6 +213,7 @@ public class Normal extends JPanel implements ActionListener {
         }
     }
 
+    // Metoda obsługi zdarzeń ActionListener
     @Override
     public void actionPerformed(ActionEvent e) {
         if (running) {
@@ -216,6 +227,7 @@ public class Normal extends JPanel implements ActionListener {
         return running;
     }
 
+    // Metoda główna uruchamiająca grę
     public static void main(String[] args) {
         JFrame frame = new JFrame("Snake Game - Single Player");
         Normal game = new Normal(frame);
