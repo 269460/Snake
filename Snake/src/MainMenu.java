@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class MainMenu extends JPanel {
+    // Tryby gry
     public enum Mode {
         SINGLE_PLAYER,
         PLAY_WITH_COMPUTER,
@@ -14,16 +15,19 @@ public class MainMenu extends JPanel {
     private JFrame parentFrame;
     private Mode selectedMode = Mode.NONE;
 
+    // Konstruktor klasy MainMenu
     public MainMenu(JFrame parentFrame) {
         this.parentFrame = parentFrame;
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS)); // Ustawienie układu na BoxLayout z osiami Y
         setBackground(Color.BLACK); // Ustawienie tła na czarne
 
+        // Tytuł gry
         JLabel title = new JLabel("Snake Game");
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setFont(new Font("Helvetica", Font.BOLD, 32));
         title.setForeground(Color.WHITE);
 
+        // Przyciski menu
         JButton singlePlayerButton = new JButton("Single Player");
         JButton playWithComputerButton = new JButton("Play with Computer");
         JButton highscoreButton = new JButton("Highscore");
@@ -32,6 +36,7 @@ public class MainMenu extends JPanel {
         playWithComputerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         highscoreButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Akcja przycisku dla trybu gry jednoosobowej
         singlePlayerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -40,6 +45,7 @@ public class MainMenu extends JPanel {
             }
         });
 
+        // Akcja przycisku dla trybu gry z komputerem
         playWithComputerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -48,6 +54,7 @@ public class MainMenu extends JPanel {
             }
         });
 
+        // Akcja przycisku do wyświetlania wyników
         highscoreButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -55,6 +62,7 @@ public class MainMenu extends JPanel {
             }
         });
 
+        // Dodawanie elementów do panelu
         add(Box.createRigidArea(new Dimension(0, 50)));
         add(title);
         add(Box.createRigidArea(new Dimension(0, 50)));
@@ -65,20 +73,22 @@ public class MainMenu extends JPanel {
         add(highscoreButton);
     }
 
+    // Metoda do rozpoczęcia gry
     private void startGame() {
         if (selectedMode == Mode.SINGLE_PLAYER) {
-            Normal game = new Normal(parentFrame);
+            Normal game = new Normal(parentFrame); // Tworzenie obiektu gry jednoosobowej
             parentFrame.setContentPane(game);
             parentFrame.revalidate();
             game.requestFocusInWindow();
         } else if (selectedMode == Mode.PLAY_WITH_COMPUTER) {
-            SnakeGame game = new SnakeGame(true, parentFrame);
+            SnakeGame game = new SnakeGame(true, parentFrame); // Tworzenie obiektu gry z komputerem
             parentFrame.setContentPane(game);
             parentFrame.revalidate();
             game.requestFocusInWindow();
         }
     }
 
+    // Metoda do wyświetlania wyników
     private void showHighscore() {
         try {
             int singlePlayerHighscore = Highscore.readSinglePlayerHighscore();
@@ -91,6 +101,7 @@ public class MainMenu extends JPanel {
         }
     }
 
+    // Getter dla wybranego trybu gry
     public Mode getSelectedMode() {
         return selectedMode;
     }
