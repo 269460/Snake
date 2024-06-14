@@ -1,6 +1,8 @@
 import java.io.*;
 
 public class Highscore {
+
+    // Odczytuje wynik z pliku o podanej nazwie
     public static int readHighscore(String filename) throws IOException {
         BufferedReader reader = null;
         try {
@@ -8,7 +10,7 @@ public class Highscore {
             String line = reader.readLine();
             return Integer.parseInt(line.trim());
         } catch (FileNotFoundException e) {
-            // If the file does not exist, return 0
+            // Jeśli plik nie istnieje, zwracamy 0
             return 0;
         } finally {
             if (reader != null) {
@@ -17,6 +19,7 @@ public class Highscore {
         }
     }
 
+    // Zapisuje wynik do pliku o podanej nazwie.
     public static void writeHighscore(String filename, int score) throws IOException {
         BufferedWriter writer = null;
         try {
@@ -29,18 +32,22 @@ public class Highscore {
         }
     }
 
+    // Odczytuje wynik dla trybu gry jednoosobowej z domyślnego pliku.
     public static int readSinglePlayerHighscore() throws IOException {
         return readHighscore("single_player_highscore.txt");
     }
 
+    // Zapisuje wynik dla trybu gry jednoosobowej do domyślnego pliku.
     public static void writeSinglePlayerHighscore(int score) throws IOException {
         writeHighscore("single_player_highscore.txt", score);
     }
 
+    // Odczytuje wynik dla trybu gry z komputerem z domyślnego pliku.
     public static int readPlayWithComputerHighscore() throws IOException {
         return readHighscore("play_with_computer_highscore.txt");
     }
 
+    // Zapisuje wynik dla trybu gry z komputerem do domyślnego pliku.
     public static void writePlayWithComputerHighscore(int score) throws IOException {
         writeHighscore("play_with_computer_highscore.txt", score);
     }
