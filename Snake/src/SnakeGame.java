@@ -44,6 +44,7 @@ public class SnakeGame extends JPanel implements ActionListener {
     private JFrame parentFrame;
     private final Lock lock = new ReentrantLock();
 
+    // Konstruktor klasy SnakeGame
     public SnakeGame(boolean playWithComputer, JFrame parentFrame) {
         this.parentFrame = parentFrame;
         this.playWithComputer = playWithComputer;
@@ -75,6 +76,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         initGame();
     }
 
+    // Inicjalizacja przycisku restartu
     private void initRestartButton() {
         restartButton = new JButton("Restart");
         restartButton.setFocusable(false);
@@ -90,6 +92,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         restartButton.setVisible(false);
     }
 
+    // Inicjalizacja przycisku menu
     private void initMenuButton() {
         menuButton = new JButton("Menu");
         menuButton.setFocusable(false);
@@ -103,6 +106,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         menuButton.setVisible(false);
     }
 
+    // Ładowanie obrazków owoców
     private void loadImages() {
         try {
             appleImage = ImageIO.read(getClass().getResourceAsStream("/resources/apple-removebg-preview.png"));
@@ -112,6 +116,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Inicjalizacja gry
     private void initGame() {
         snake = new ArrayList<>();
         enemySnake = new ArrayList<>();
@@ -149,6 +154,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         secondEnemyThread.start();
     }
 
+    // Zatrzymywanie wątków
     private void stopThreads() {
         if (playerSnakeMover != null) {
             playerSnakeMover.stop();
@@ -161,6 +167,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Umieszczanie owoców na planszy
     private void placeFruits() {
         fruits.clear();
         Random random = new Random();
@@ -172,6 +179,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Umieszczanie przeszkód na planszy
     private void placeObstacles() {
         obstacles.clear();
         Random random = new Random();
@@ -182,12 +190,14 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Losowanie kierunku ruchu dla przeszkody
     private char randomDirection() {
         char[] directions = {'L', 'R', 'U', 'D'};
         Random random = new Random();
         return directions[random.nextInt(directions.length)];
     }
 
+    // Ruch węża gracza
     private void move() {
         lock.lock();
         try {
@@ -212,7 +222,7 @@ public class SnakeGame extends JPanel implements ActionListener {
                     fruits.remove(i);
                     placeFruits();
                     score++;
-                    int newDelay = Math.max(200, initialDelay - score * delayDecrease); // Zmniejszono minimalne opóźnienie
+                    int newDelay = Math.max(200, initialDelay - score * delayDecrease);
                     timer.setDelay(newDelay);
                     playerSnakeMover.setDelay(newDelay);
                     enemySnakeMover.setDelay(newDelay);
@@ -226,6 +236,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Ruch przeszkód
     private void moveObstacles() {
         lock.lock();
         try {
@@ -254,10 +265,12 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Ruch pierwszego węża przeciwnika
     private void moveEnemy() {
         moveSingleEnemy(enemySnake, findNearestFruit(enemySnake.get(0)));
     }
 
+    // Ruch drugiego węża przeciwnika
     private void moveSecondEnemy() {
         if (secondEnemySnake.isEmpty()) return;
 
@@ -271,6 +284,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Ruch pojedynczego węża przeciwnika w kierunku celu
     private void moveSingleEnemy(List<Point> enemy, Point target) {
         lock.lock();
         try {
@@ -331,6 +345,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Sprawdzanie, czy owoc jest w pobliżu
     private Point isFruitNearby(Point head, int distance) {
         lock.lock();
         try {
@@ -346,13 +361,14 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Ruch węża przeciwnika w kierunku gracza
     private void moveTowardsPlayer(List<Point> enemy) {
         lock.lock();
         try {
             if (enemy.isEmpty()) return;
 
             Point head = new Point(enemy.get(0));
-            Point target = snake.get(0); // target is the head of the player's snake
+            Point target = snake.get(0);
 
             int dx = target.x - head.x;
             int dy = target.y - head.y;
@@ -399,6 +415,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Znajdowanie najbliższego owocu
     private Point findNearestFruit(Point head) {
         lock.lock();
         try {
@@ -417,6 +434,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Sprawdzanie, czy punkt jest bezpieczny
     private boolean isSafe(Point p) {
         lock.lock();
         try {
@@ -446,6 +464,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Sprawdzanie kolizji
     private void checkCollision() {
         lock.lock();
         try {
@@ -526,6 +545,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Rysowanie komponentów gry
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -569,6 +589,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Wyświetlanie komunikatu końca gry
     private void gameOver(Graphics g) {
         String msg = "Game Over";
         Font font = new Font("Helvetica", Font.BOLD, 50);
@@ -594,6 +615,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Metoda obsługi zdarzeń ActionListener
     @Override
     public void actionPerformed(ActionEvent e) {
         // usunięto wywołanie funkcji move, aby uniknąć podwójnego ruchu
@@ -611,6 +633,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         return running;
     }
 
+    // Klasa wewnętrzna reprezentująca owoc
     private static class Fruit {
         Point position;
         boolean isApple;
@@ -621,6 +644,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Klasa wewnętrzna reprezentująca przeszkodę
     private static class Obstacle {
         Point position;
         char direction;
@@ -631,6 +655,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Klasa wewnętrzna odpowiedzialna za ruch węża
     private static class SnakeMover implements Runnable {
         private final List<Point> snake;
         private final Runnable moveMethod;
@@ -665,6 +690,7 @@ public class SnakeGame extends JPanel implements ActionListener {
         }
     }
 
+    // Metoda główna uruchamiająca grę
     public static void main(String[] args) {
         JFrame frame = new JFrame("Snake Game - Play with Computer");
         SnakeGame game = new SnakeGame(true, frame);
